@@ -1,51 +1,93 @@
+import time
+import requests
+
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, ReplyKeyboardMarkup, KeyboardButton, \
     ReplyKeyboardRemove
 from aiogram.types.message import ContentType
 from aiogram import Bot, Dispatcher, executor, types
 
-API_TOKEN = "6745277481:AAGOxuHkIJMppM3K1Y9bqnXrwqka7VpGz-I"
+API_TOKEN = "6745277481:AAGOxuHkIJMppM3K1Y9bqnXrwqka7VpGz-I"  # ваш токен
 
 bot = Bot(token=API_TOKEN)
 dp = Dispatcher(bot)
 
 KB1 = ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
 kb1_1 = KeyboardButton("/help")
-kb1_2 = KeyboardButton("/hello")
-KB1.add(kb1_1).insert(kb1_2)
+kb1_2 = KeyboardButton("/🌠")
+kb1_3 = KeyboardButton("/🌤")
+kb1_4 = KeyboardButton("/🐱")
+KB1.add(kb1_1)
+KB1.add(kb1_3).insert(kb1_2).insert(kb1_4)
 
 KB3 = ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
 kb3_1 = KeyboardButton("/go")
 kb3_2 = KeyboardButton("/search")
 KB3.add(kb3_1).add(kb3_2)
 
+user_text = None
+
+
+def gen_photo_url(word: str) -> str:
+    return "https://yandex.ru/images/search?text=" + word
+
+
+def gen_weather_outer(city):
+    return "https://yandex.ru/weather/ru-RU/" + city + "/details"
+
+def gen_photo_url(color):
+    return "https://www.google.com/search?q=кошкаф" + color
 
 @dp.message_handler(commands=['start'])
 async def send_welcome(message: types.Message):
     await bot.send_message(chat_id=message.from_user.id,
-                           text="""
-Адъютант включён. Добрый вечер. Новостей от Доминиона не поступало. Можете продолжать работу..
-""",
+                           text= "Адьютант включён. Добрый весчер, магистрат. Новостей от Доминиона не поступало. Можете продолжать работу...",
                            parse_mode="html",
                            reply_markup=KB1)
     await message.delete()
 
-@dp.message_handler(commands=['country'])
-async def send_welcome(message: types.Message):
-    await bot.send_message(chat_id=message.from_user/id,
-                           text=f"любой текст",
-                           parse_mode="html")
 
+@dp.message_handler(commands=['help'])
+async def send_help(message: types.Message):
     await bot.send_message(chat_id=message.from_user.id,
-                           text="любой текст",
+                           text= "Данный бот показывает погоду, отправляет изображения по вашему запросу.....",
                            parse_mode="html",
-                           replay_marcup=KB3)
+                           reply_markup=KB1)
+    await message.delete()
 
 @dp.message_handler()
 async def echo(message: types.Message):
-    tx = message.text
-    await bot.send_photo(chat_id=message.from_usser.id,
-                         photo=f"https://ya.ru/images/search?img_url=https%3A%2F%2Fcs12.pikabu.ru%2Fpost_img%2F2022%2F10%2F03%2F6%2Fog_og_1664787919293120323.jpg&lr=21623&pos=15&rpt=simage&source=serp&text=%D0%BC%D0%B0%D1%82%D1%8B%20%D1%8D%D1%82%D0%BE%20%D0%BF%D0%BB%D0%BE%D1%85%D0%BE%20%D0%BC%D0%B5%D0%BC%20%D1%81%20%D0%BA%D0%BE%D1%82%D1%8F%D1%82%D0%B0%D0%BC%D0%B8={tx}")
-    
+    global user_text
+    if message.text[0] != '/':
+        user_text = message.text
+    elif message.text == '/🌠':
+        if user_text is None:
+            await bot.send_message(chat_id=message.from_user.id,
+                                   text="вы еще ничего не ввели")
+        else:
+            await bot.send_photo(chat_id=message.from_user.id,
+                                 photo=gen_photo_url(user_text))
+            await message.delete()
+            user_text = None
+    elif message.text == '/🌤':
+        if user_text is None:
+            await bot.send_message(chat_id=message.from_user.id,
+                                   text="вы еще ничего не ввели")
+        else:
+            await bot.send_message(chat_id=message.from_user.id,
+                                   text=gen_weather_outer(user_text))
+            await message.delete()
+            user_text = None
+    elif message.text == '/🐱':
+        if user_text is None:
+            await bot.send_message(chat_id=message.from_user.id,
+                                   text="вы еще ничего не ввели")
+        else:
+            await bot.send_photo(chat_id=message.from_user.id,
+                                 photo=gen_photo_url(user_text))
+            await message.delete()
+            user_text = None
 
-if __name__ == '__main__':
+# после q= слово
+
+if __name__ == "__main__":
     executor.start_polling(dp, skip_updates=False)
